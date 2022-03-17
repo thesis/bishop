@@ -16,8 +16,13 @@ client.on('ready', () => {
 
 client.on('threadCreate', async thread => {
   thread.join()
-  thread.send("<placeholder").then(placeholder => {
-    placeholder.edit("<@&" + ROLE + ">")
+  thread.send("<placeholder>").then(placeholder => {
+    placeholder.edit("<@&" + ROLE + ">").then(_ => {
+      const sevenDaysInMinutes = 7 * 24 * 60
+      if (thread.autoArchiveDuration < sevenDaysInMinutes) {
+        thread.setAutoArchiveDuration(sevenDaysInMinutes)
+      }
+    })
   })
 });
 
