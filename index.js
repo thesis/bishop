@@ -8,6 +8,8 @@ const sevenDaysInMinutes = 7 * 24 * 60
 
 const { Client, Intents } = require('discord.js');
 const CronJob = require('cron').CronJob;
+const moment = require('moment')
+
 const client = new Client({ intents: [
   Intents.FLAGS.GUILDS,
   Intents.FLAGS.GUILD_MESSAGES,
@@ -20,8 +22,7 @@ client.on('ready', async () => {
 });
 
 client.on('threadCreate', async thread => {
-  const parent = await thread.guild.channels.fetch(thread.parentId)
-  if (parent.name !== "standups") {
+  if (thread.ownerId !== client.user.id) {
     await thread.join()
     const placeholder = await thread.send("<placeholder>")
     await placeholder.edit("<@&" + ROLE + ">")
@@ -32,7 +33,7 @@ client.on('threadCreate', async thread => {
 });
 
 client.on('messageCreate', async message => {
-  if (!!message.reference) {
+  if (!!message.reference && !!message.reference.messageId) {
     const channel = await client.channels.fetch(message.reference.channelId)
     const referenceMessage = await channel.messages.fetch(message.reference.messageId)
     if (!!referenceMessage.reference) {
@@ -45,8 +46,7 @@ const mondayStandup = new CronJob('30 1 * * 1', async function() {
   const guild = await client.guilds.fetch(GUILD)
   const channels = await guild.channels.fetch()
   const channel = channels.find(channel => channel.name === "standups")
-  const date = new Date()
-  const threadName = `${date.getFullYear()}-${date.getMonth()}-${date.getDay()} Standup`
+  const threadName = `${moment().format('YYYY-MM-DD')} Standup`
   const thread = await channel.threads.create({
     name: threadName,
     autoArchiveDuration: sevenDaysInMinutes,
@@ -65,15 +65,19 @@ const fridayStandup = new CronJob('30 1 * * 5', async function() {
   const guild = await client.guilds.fetch(GUILD)
   const channels = await guild.channels.fetch()
   const channel = channels.find(channel => channel.name === "standups")
-  const date = new Date()
-  const threadName = `${date.getFullYear()}-${date.getMonth()}-${date.getDay()} EOW Standup`
+  const threadName = `${moment().format('YYYY-MM-DD')} EOW Standup`
   const thread = await channel.threads.create({
     name: threadName,
     autoArchiveDuration: sevenDaysInMinutes,
     reason: "Friday Standup"
   })
+  const threads = await channel.threads.fetch()
+  let mondayDate = moment().subtract(4, 'days')
+  const mondayThreadName = `${mondayDate.format('YYYY-MM-DD')} Standup`
+  const mondayThread = threads.threads.find(t => t.name === mondayThreadName)
+  const mondayTheadLink = mondayThread ? ` ${mondayThread}` : ""
   thread.send(
-    `<@&${ROLE}>, Please paste in what you set out to accomplish from Monday, as well as what you ended up accomplishing with the following syntax\n\n` +
+    `<@&${ROLE}>, Please paste in what you set out to accomplish from Monday${mondayTheadLink}, as well as what you ended up accomplishing with the following syntax\n\n` +
     `- [X] A robot may not injure a human being or, through inaction, allow a human being to come to harm.\n` + 
     `- [ ] A robot must obey the orders given it by human beings except where such orders would conflict with the First Law.\n` +
     `- [X] A robot must protect its own existence as long as such protection does not conflict with the First or Second Law.\n\n` +
