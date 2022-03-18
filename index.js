@@ -2,6 +2,7 @@ const TOKEN = process.env.TOKEN
 const ROLE = process.env.ROLE
 const EMOJI = process.env.EMOJI
 const GUILD = process.env.GUILD
+const KEEP_ROLE = process.env.KEEP_ROLE
 
 const sevenDaysInMinutes = 7 * 24 * 60
 
@@ -80,5 +81,15 @@ const fridayStandup = new CronJob('30 1 * * 5', async function() {
   )
 }, null, true, 'America/New_York');
 fridayStandup.start();
+
+const dailyHuddle = new CronJob('30 16 * * 1-5', async function() {
+  const guild = await client.guilds.fetch(GUILD)
+  const channels = await guild.channels.fetch()
+  const channel = channels.find(channel => channel.name === "keep-watercooler")
+  if (channel) {
+    channel.send(`<@&${KEEP_ROLE}> there's a daily huddle in huddle 0 :)`)
+  }
+}, null, true, 'Europe/Rome');
+dailyHuddle.start();
 
 client.login(TOKEN);
