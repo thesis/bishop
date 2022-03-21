@@ -4,8 +4,7 @@ const EMOJI = process.env.EMOJI
 const GUILD = process.env.GUILD
 const KEEP_ROLE = process.env.KEEP_ROLE
 
-const sevenDaysInMinutes = 60
-// const sevenDaysInMinutes = 7 * 24 * 60
+const sevenDaysInMinutes = 7 * 24 * 60
 
 const { Client, Intents } = require('discord.js');
 const CronJob = require('cron').CronJob;
@@ -45,6 +44,31 @@ client.on('messageCreate', async message => {
   }
 });
 
+client.on('messageCreate', async message => {
+  if (message.author.id !== client.user.id) {
+    const channel = await client.channels.fetch(message.channelId)
+    if (channel.isThread() && channel.name.endsWith("Standup")) {
+      const messages = await channel.messages.fetch()
+      const reminderMessage = messages.find(message => message.author.id === client.user.id && message.content.startsWith("I would appreciate"))
+      if (reminderMessage) {
+
+      }
+      const members = await channel.members.fetch()
+      const guild = await client.guilds.fetch(GUILD)
+      const fetchedMembers = await Promise.all(members.map(member => guild.members.fetch(member.id)))
+      const threadMemberMap = fetchedMembers.reduce((members, member) => Object.assign(members, {[member.user.id]: member.user.username}), {})
+
+      const messageAuthorMap = messages.reduce((authors, message) => Object.assign(authors, {[message.author.id]: true}), {})
+      const membersToRemind = Object.keys(threadMemberMap)
+        .filter(memberId => !messageAuthorMap[memberId])
+        .map(memberId => threadMemberMap[memberId])
+        .sort()
+
+      reminderMessage.edit(`I would appreciate standup posts from:\n\n${membersToRemind.join('\n')}`)
+    }
+  }
+})
+
 const mondayStandup = new CronJob('30 1 * * 1', async function() {
   const guild = await client.guilds.fetch(GUILD)
   const channels = await guild.channels.fetch()
@@ -55,12 +79,17 @@ const mondayStandup = new CronJob('30 1 * * 1', async function() {
     autoArchiveDuration: sevenDaysInMinutes,
     reason: "Monday Standup"
   })
-  thread.send(
+  await thread.send(
     `<@&${ROLE}>, Please post what you plan on accomplishing this week with the following syntax\n\n` +
     `- [ ] A robot may not injure a human being or, through inaction, allow a human being to come to harm.\n` + 
     `- [ ] A robot must obey the orders given it by human beings except where such orders would conflict with the First Law.\n` +
     `- [ ] A robot must protect its own existence as long as such protection does not conflict with the First or Second Law.`
   )
+
+  const members = await thread.members.fetch()
+  const fetchedMembers = await Promise.all(members.map(member => guild.members.fetch(member.id)))
+  const listOfMemberNames = fetchedMembers.map(member => member.user.username).filter(name => name !== client.user.username).sort()
+  thread.send(`I would appreciate standup posts from:\n\n${listOfMemberNames.join('\n')}`)
 }, null, true, 'America/New_York');
 mondayStandup.start();
 
@@ -79,13 +108,18 @@ const fridayStandup = new CronJob('30 1 * * 5', async function() {
   const mondayThreadName = `${mondayDate.format('YYYY-MM-DD')} Standup`
   const mondayThread = threads.threads.find(t => t.name === mondayThreadName)
   const mondayTheadLink = mondayThread ? ` ${mondayThread}` : ""
-  thread.send(
+  await thread.send(
     `<@&${ROLE}>, Please paste in what you set out to accomplish from Monday${mondayTheadLink}, as well as what you ended up accomplishing with the following syntax\n\n` +
     `- [X] A robot may not injure a human being or, through inaction, allow a human being to come to harm.\n` + 
     `- [ ] A robot must obey the orders given it by human beings except where such orders would conflict with the First Law.\n` +
     `- [X] A robot must protect its own existence as long as such protection does not conflict with the First or Second Law.\n\n` +
     `Use [ ] to denote work that was planned but unfinished, and [X] to denote work that was accomplished.`
   )
+
+  const members = await thread.members.fetch()
+  const fetchedMembers = await Promise.all(members.map(member => guild.members.fetch(member.id)))
+  const listOfMemberNames = fetchedMembers.map(member => member.user.username).filter(name => name !== client.user.username).sort()
+  thread.send(`I would appreciate standup posts from:\n\n${listOfMemberNames.join('\n')}`)
 }, null, true, 'America/New_York');
 fridayStandup.start();
 
