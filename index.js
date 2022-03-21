@@ -4,7 +4,8 @@ const EMOJI = process.env.EMOJI
 const GUILD = process.env.GUILD
 const KEEP_ROLE = process.env.KEEP_ROLE
 
-const sevenDaysInMinutes = 7 * 24 * 60
+const sevenDaysInMinutes = 60
+// const sevenDaysInMinutes = 7 * 24 * 60
 
 const { Client, Intents } = require('discord.js');
 const CronJob = require('cron').CronJob;
@@ -35,9 +36,11 @@ client.on('threadCreate', async thread => {
 client.on('messageCreate', async message => {
   if (!!message.reference && !!message.reference.messageId) {
     const channel = await client.channels.fetch(message.reference.channelId)
-    const referenceMessage = await channel.messages.fetch(message.reference.messageId)
-    if (!!referenceMessage.reference) {
-      message.react(EMOJI)
+    if (!channel.isThread()) {
+      const referenceMessage = await channel.messages.fetch(message.reference.messageId)
+      if (!!referenceMessage.reference) {
+        message.react(EMOJI)
+      }
     }
   }
 });
