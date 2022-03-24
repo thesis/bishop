@@ -6,7 +6,7 @@ const KEEP_ROLE = process.env.KEEP_ROLE
 
 const sevenDaysInMinutes = 7 * 24 * 60
 
-const { Client, Intents } = require('discord.js');
+const { Client, Intents, MessageEmbed } = require('discord.js');
 const CronJob = require('cron').CronJob;
 const moment = require('moment')
 
@@ -65,6 +65,23 @@ client.on('messageCreate', async message => {
         .sort()
 
       reminderMessage.edit(`I would appreciate standup posts from:\n\n${membersToRemind.join('\n')}`)
+    }
+  }
+})
+
+client.on('messageCreate', async message => {
+  if (message.author.id !== client.user.id) {
+    const receivedEmbeds = message.embeds
+    if (!!receivedEmbeds && receivedEmbeds.find(embed => embed.url && embed.url.includes('github'))) {
+      message.suppressEmbeds(true)
+      const description = receivedEmbeds
+        .map(embed => `[${embed.title}](${embed.url})`)
+        .join('\n')
+      const embed = new MessageEmbed()
+        .setColor('#0099ff')
+        .setDescription(description)
+
+      message.channel.send({embeds: [embed]})
     }
   }
 })
