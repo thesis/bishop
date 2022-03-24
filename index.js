@@ -69,7 +69,7 @@ client.on('messageCreate', async message => {
   }
 })
 
-client.on('messageCreate', async message => {
+client.on('messageUpdate', async (_, message) => {
   if (!message.author.bot) {
     const receivedEmbeds = message.embeds
     if (!!receivedEmbeds && receivedEmbeds.find(embed => embed.url && embed.url.includes('github'))) {
