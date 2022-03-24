@@ -73,7 +73,7 @@ client.on('messageCreate', async message => {
   if (message.author.id !== client.user.id) {
     const receivedEmbeds = message.embeds
     if (!!receivedEmbeds && receivedEmbeds.find(embed => embed.url && embed.url.includes('github'))) {
-      message.suppressEmbeds(true)
+      await message.suppressEmbeds(true)
       const description = receivedEmbeds
         .map(embed => `[${embed.title}](${embed.url})`)
         .join('\n')
