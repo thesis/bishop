@@ -70,7 +70,7 @@ client.on('messageCreate', async message => {
 })
 
 client.on('messageCreate', async message => {
-  if (message.author.id !== client.user.id) {
+  if (!message.author.bot) {
     const receivedEmbeds = message.embeds
     if (!!receivedEmbeds && receivedEmbeds.find(embed => embed.url && embed.url.includes('github'))) {
       await message.suppressEmbeds(true)
