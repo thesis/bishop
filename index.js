@@ -78,11 +78,11 @@ async function compactGithubEmbeds(message) {
       if (receivedEmbeds.length > 1) {
         description = receivedEmbeds
           .map((embed, i) => `(${i+1}) [${embed.title}](${embed.url})`)
-          .join('\n\n')
+          .join('\n')
       } else {
         description = receivedEmbeds
           .map((embed, i) => `[${embed.title}](${embed.url})`)
-          .join('\n\n')
+          .join('\n')
       }
       const embed = new MessageEmbed()
         .setColor('#0099ff')
