@@ -74,16 +74,9 @@ async function compactGithubEmbeds(message) {
     const receivedEmbeds = message.embeds
     if (!!receivedEmbeds && receivedEmbeds.find(embed => embed.url && embed.url.includes('github'))) {
       await message.suppressEmbeds(true)
-      let description;
-      if (receivedEmbeds.length > 1) {
-        description = receivedEmbeds
-          .map((embed, i) => `(${i+1}) [${embed.title}](${embed.url})`)
-          .join('\n')
-      } else {
-        description = receivedEmbeds
-          .map((embed, i) => `[${embed.title}](${embed.url})`)
-          .join('\n')
-      }
+      const description = receivedEmbeds
+        .map((embed, i) => `(${i+1}) [${embed.title}](${embed.url})`)
+        .join('\n')
       const embed = new MessageEmbed()
         .setColor('#0099ff')
         .setDescription(description)
