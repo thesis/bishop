@@ -153,7 +153,7 @@ const dailyHuddle = new CronJob('30 16 * * 1-5', async function() {
 }, null, true, 'Europe/Rome');
 dailyHuddle.start();
 
-const cleanKeepGithub = new CronJob('30 1 * * 5', async function() {
+const cleanKeepGithub = new CronJob('30 1 * * 1', async function() {
   const guild = await client.guilds.fetch(GUILD)
   const channels = await guild.channels.fetch()
   const channel = channels.find(channel => channel.name === "keep-github")
