@@ -17,6 +17,17 @@ const client = new Client({ intents: [
   Intents.FLAGS.GUILD_MEMBERS,
 ] });
 
+function weekdaysBefore(theMoment, days) {
+  let newMoment = theMoment.clone()
+  while(days > 0) {
+    if (newMoment.isoWeekday() < 6) {
+      days -= 1
+    }
+    newMoment = newMoment.subtract(1, 'days')
+  }
+  return newMoment
+}
+
 client.on('ready', async () => {
   console.log(`Logged in as ${client.user.tag}!`);
 });
@@ -166,5 +177,23 @@ const cleanKeepGithub = new CronJob('30 1 * * 1', async function() {
   channel.send(`Deleted ${totalMessagesDeleted} messages as part of weekly maintenance`)
 })
 cleanKeepGithub.start();
+
+const archiveThreads = new CronJob('*/15 * * * *', async function() {
+  const guild = await client.guilds.fetch(GUILD)
+  const channels = await guild.channels.fetch()
+  const archiveThreshold = weekdaysBefore(moment(), 4)
+  channels
+    .filter(channel => channel.isText() && channel.name != "keep-github" && channel.viewable)
+    .forEach(async channel => {
+      const threads = await channel.threads.fetch()
+      threads.threads.forEach(async thread => {
+        const messages = await thread.messages.fetch({limit: 1})
+        if (moment(messages.first().createdTimestamp).isBefore(archiveThreshold)) {
+          thread.send(`<@${thread.ownerId}>, it's been a bit since this thread has seen activity. Ready to archive it?`)
+        }
+      })
+    })
+})
+archiveThreads.start();
 
 client.login(TOKEN);
