@@ -6,7 +6,7 @@ const KEEP_ROLE = process.env.KEEP_ROLE
 
 const sevenDaysInMinutes = 7 * 24 * 60
 
-const { Client, Intents, MessageEmbed } = require('discord.js');
+const { Client, Intents, MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
 const CronJob = require('cron').CronJob;
 const moment = require('moment')
 
@@ -181,7 +181,7 @@ cleanKeepGithub.start();
 const archiveThreads = new CronJob('*/15 * * * *', async function() {
   const guild = await client.guilds.fetch(GUILD)
   const channels = await guild.channels.fetch()
-  const archiveThreshold = weekdaysBefore(moment(), 4)
+  const archiveThreshold = weekdaysBefore(moment(), 0)
   channels
     .filter(channel => channel.isText() && channel.name != "keep-github" && channel.viewable)
     .forEach(async channel => {
@@ -189,11 +189,30 @@ const archiveThreads = new CronJob('*/15 * * * *', async function() {
       threads.threads.forEach(async thread => {
         const messages = await thread.messages.fetch({limit: 1})
         if (moment(messages.first().createdTimestamp).isBefore(archiveThreshold)) {
-          thread.send(`<@${thread.ownerId}>, it's been a bit since this thread has seen activity. Ready to archive it?`)
+          const row = new MessageActionRow()
+            .addComponents(
+              new MessageButton()
+                .setCustomId('archive-thread')
+                .setLabel('Archive The Thread')
+                .setStyle('DANGER'),
+            );
+
+          thread.send({
+            content: `<@${thread.ownerId}>, it's been a bit since this thread has seen activity. Ready to archive it?`,
+            components: [row]
+          })
         }
       })
     })
 })
 archiveThreads.start();
+
+client.on('interactionCreate', async interaction => {
+	if (!interaction.isButton() || !interaction.customId === 'archive-thread') return;
+  const guild = await client.guilds.fetch(interaction.guildId)
+  const channel = await guild.channels.fetch(interaction.channelId)
+  await interaction.reply("Done!")
+  channel.setArchived(true)
+});
 
 client.login(TOKEN);
