@@ -114,6 +114,7 @@ const mondayStandup = new CronJob('30 1 * * 1', async function() {
     autoArchiveDuration: sevenDaysInMinutes,
     reason: "Monday Standup"
   })
+  await thread.join()
   await thread.send(
     `<@&${ROLE}>, Please post what you plan on accomplishing this week with the following syntax\n\n` +
     `- [ ] A robot may not injure a human being or, through inaction, allow a human being to come to harm.\n` + 
@@ -143,6 +144,7 @@ const fridayStandup = new CronJob('30 1 * * 5', async function() {
   const mondayThreadName = `${mondayDate.format('YYYY-MM-DD')} Standup`
   const mondayThread = threads.threads.find(t => t.name === mondayThreadName)
   const mondayTheadLink = mondayThread ? ` ${mondayThread}` : ""
+  await thread.join()
   await thread.send(
     `<@&${ROLE}>, Please paste in what you set out to accomplish from Monday${mondayTheadLink}, as well as what you ended up accomplishing with the following syntax\n\n` +
     `- [X] A robot may not injure a human being or, through inaction, allow a human being to come to harm.\n` + 
