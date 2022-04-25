@@ -196,7 +196,7 @@ const archiveThreads = new CronJob('*/15 * * * *', async function() {
       const threads = await channel.threads.fetch()
       threads.threads.forEach(async thread => {
         const messages = await thread.messages.fetch({limit: 1})
-        if (moment(messages.first().createdTimestamp).isBefore(archiveThreshold)) {
+        if (messages.first() && moment(messages.first().createdTimestamp).isBefore(archiveThreshold)) {
           if (thread.ownerId === client.user.id) {
             thread.setArchived(true)
           } else {
