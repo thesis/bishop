@@ -193,18 +193,22 @@ const archiveThreads = new CronJob('*/15 * * * *', async function() {
       threads.threads.forEach(async thread => {
         const messages = await thread.messages.fetch({limit: 1})
         if (moment(messages.first().createdTimestamp).isBefore(archiveThreshold)) {
-          const row = new MessageActionRow()
-            .addComponents(
-              new MessageButton()
-                .setCustomId('archive-thread')
-                .setLabel('Archive The Thread')
-                .setStyle('DANGER'),
-            );
+          if (thread.ownerId === client.user.id) {
+            thread.setArchived(true)
+          } else {
+            const row = new MessageActionRow()
+              .addComponents(
+                new MessageButton()
+                  .setCustomId('archive-thread')
+                  .setLabel('Archive The Thread')
+                  .setStyle('DANGER'),
+              );
 
-          thread.send({
-            content: `<@${thread.ownerId}>, it's been a bit since this thread has seen activity. Ready to archive it?`,
-            components: [row]
-          })
+            thread.send({
+              content: `<@${thread.ownerId}>, it's been a bit since this thread has seen activity. Ready to archive it?`,
+              components: [row]
+            })
+          }
         }
       })
     })
