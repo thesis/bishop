@@ -9,6 +9,8 @@ const sevenDaysInMinutes = 7 * 24 * 60
 const { Client, Intents, MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
 const CronJob = require('cron').CronJob;
 const moment = require('moment')
+const fs = require('fs')
+const EventEmitter = require('events')
 
 const client = new Client({ intents: [
   Intents.FLAGS.GUILDS,
@@ -189,6 +191,7 @@ cleanKeepGithub.start();
 const archiveThreads = new CronJob('*/15 * * * *', async function() {
   const guild = await client.guilds.fetch(GUILD)
   const channels = await guild.channels.fetch()
+  const longRunningThreadIds = await read('long-running-thread-ids')
   const archiveThreshold = weekdaysBefore(moment(), 4)
   channels
     .filter(channel => channel.isText() && channel.name != "keep-github" && channel.viewable)
@@ -197,21 +200,31 @@ const archiveThreads = new CronJob('*/15 * * * *', async function() {
       threads.threads.forEach(async thread => {
         const messages = await thread.messages.fetch({limit: 1})
         if (messages.first() && moment(messages.first().createdTimestamp).isBefore(archiveThreshold)) {
-          if (thread.ownerId === client.user.id) {
-            thread.setArchived(true)
+          if (longRunningThreadIds[thread.id]) {
+            thread.send({ content: `Don't mind me; just keeping the thread alive 🧹` })
           } else {
-            const row = new MessageActionRow()
-              .addComponents(
-                new MessageButton()
-                  .setCustomId('archive-thread')
-                  .setLabel('Archive The Thread')
-                  .setStyle('DANGER'),
-              );
+            if (thread.ownerId === client.user.id) {
+              thread.setArchived(true)
+            } else {
+              const row = new MessageActionRow()
+                .addComponents(
+                  new MessageButton()
+                    .setCustomId('archive-thread')
+                    .setLabel('Archive The Thread')
+                    .setStyle('DANGER'),
+                )
+                .addComponents(
+                  new MessageButton()
+                    .setCustomId('long-running-thread')
+                    .setLabel('Long-Running Thread')
+                    .setStyle('SECONDARY'),
+                );
 
-            thread.send({
-              content: `<@${thread.ownerId}>, it's been a bit since this thread has seen activity. Ready to archive it?`,
-              components: [row]
-            })
+              thread.send({
+                content: `<@${thread.ownerId}>, it's been a bit since this thread has seen activity. Ready to archive it?`,
+                components: [row]
+              })
+            }
           }
         }
       })
@@ -220,11 +233,59 @@ const archiveThreads = new CronJob('*/15 * * * *', async function() {
 archiveThreads.start();
 
 client.on('interactionCreate', async interaction => {
-	if (!interaction.isButton() || !interaction.customId === 'archive-thread') return;
+  if (!interaction.isButton()) return;
+  if (interaction.customId === 'archive-thread') {
+    archiveThread(interaction)
+  }
+  if (interaction.customId === 'long-running-thread') {
+    markThreadLongRunning(interaction)
+  }
+});
+
+async function archiveThread(interaction) {
   const guild = await client.guilds.fetch(interaction.guildId)
   const channel = await guild.channels.fetch(interaction.channelId)
   await interaction.reply("Done!")
   channel.setArchived(true)
-});
+}
+
+async function markThreadLongRunning(interaction) {
+  console.log(interaction.channelId)
+  let longRunningThreadIds = await read('long-running-thread-ids') || {}
+  longRunningThreadIds[interaction.channelId] = true
+  await write('long-running-thread-ids', longRunningThreadIds)
+  await interaction.reply("Alright. I'll keep the thread alive.")
+}
+
+let brainLock = false
+const emitter = new EventEmitter();
+async function read(key) {
+  if (brainLock) {
+    await new Promise(resolve => emitter.once('unlocked', resolve))
+  }
+  brainLock = true
+
+  const data = await fs.promises.readFile("brain.json")
+  const value = JSON.parse(data.toString())[key]
+
+  brainLock = false
+  emitter.emit('unlocked')
+  return value
+}
+
+async function write(key, val) {
+  if (brainLock) {
+    await new Promise(resolve => emitter.once('unlocked', resolve))
+  }
+  brainLock = true
+
+  const data = await fs.promises.readFile("brain.json")
+  let brain = JSON.parse(data.toString())
+  brain[key] = val
+  await fs.promises.writeFile("brain.json", JSON.stringify(brain, null, 2))
+
+  brainLock = false
+  emitter.emit('unlocked')
+}
 
 client.login(TOKEN);
