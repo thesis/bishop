@@ -191,7 +191,7 @@ cleanKeepGithub.start();
 const archiveThreads = new CronJob('*/15 * * * *', async function() {
   const guild = await client.guilds.fetch(GUILD)
   const channels = await guild.channels.fetch()
-  const longRunningThreadIds = await read('long-running-thread-ids')
+  const longRunningThreadIds = (await read('long-running-thread-ids')) || {}
   const archiveThreshold = weekdaysBefore(moment(), 4)
   channels
     .filter(channel => channel.isText() && channel.name != "keep-github" && channel.viewable)
