@@ -6,18 +6,23 @@ const KEEP_ROLE = process.env.KEEP_ROLE
 
 const sevenDaysInMinutes = 7 * 24 * 60
 
-const { Client, Intents, MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
-const CronJob = require('cron').CronJob;
+const { Client, Collection, Intents, MessageEmbed, MessageActionRow, MessageButton } = require('discord.js')
+const CronJob = require('cron').CronJob
 const moment = require('moment')
 const fs = require('fs')
+const path = require('path')
 const EventEmitter = require('events')
+const { REST } = require('@discordjs/rest')
+const { Routes } = require('discord-api-types/v9')
+
+const rest = new REST({ version: '9' }).setToken(TOKEN)
 
 const client = new Client({ intents: [
   Intents.FLAGS.GUILDS,
   Intents.FLAGS.GUILD_MESSAGES,
   Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
   Intents.FLAGS.GUILD_MEMBERS,
-] });
+] })
 
 function weekdaysBefore(theMoment, days) {
   let newMoment = theMoment.clone()
@@ -31,8 +36,24 @@ function weekdaysBefore(theMoment, days) {
 }
 
 client.on('ready', async () => {
-  console.log(`Logged in as ${client.user.tag}!`);
-});
+  console.log(`Logged in as ${client.user.tag}!`)
+
+  client.commands = new Collection()
+  const commandsPath = path.join(__dirname, 'commands')
+  const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'))
+  let commands = []
+
+  for (const file of commandFiles) {
+    const filePath = path.join(commandsPath, file)
+    const command = require(filePath)
+    client.commands.set(command.data.name, command)
+    commands.push(command.data.toJSON())
+  }
+
+  rest.put(Routes.applicationGuildCommands(client.user.id, GUILD), { body: commands })
+    .then(() => console.log('Successfully registered application commands.'))
+    .catch(console.error)
+})
 
 client.on('threadCreate', async thread => {
   if (thread.ownerId !== client.user.id) {
@@ -43,7 +64,7 @@ client.on('threadCreate', async thread => {
       thread.setAutoArchiveDuration(sevenDaysInMinutes)
     }
   }
-});
+})
 
 client.on('messageCreate', async message => {
   if (!!message.reference && !!message.reference.messageId) {
@@ -59,7 +80,7 @@ client.on('messageCreate', async message => {
       }
     }
   }
-});
+})
 
 client.on('messageCreate', async message => {
   if (message.author.id !== client.user.id) {
@@ -130,8 +151,8 @@ const mondayStandup = new CronJob('30 1 * * 1', async function() {
   const fetchedMembers = await Promise.all(members.map(member => guild.members.fetch(member.id)))
   const listOfMemberNames = fetchedMembers.map(member => member.user.username).filter(name => name !== client.user.username).sort()
   thread.send(`I would appreciate standup posts from:\n\n${listOfMemberNames.join('\n')}`)
-}, null, true, 'America/New_York');
-mondayStandup.start();
+}, null, true, 'America/New_York')
+mondayStandup.start()
 
 const fridayStandup = new CronJob('30 1 * * 5', async function() {
   const guild = await client.guilds.fetch(GUILD)
@@ -161,8 +182,8 @@ const fridayStandup = new CronJob('30 1 * * 5', async function() {
   const fetchedMembers = await Promise.all(members.map(member => guild.members.fetch(member.id)))
   const listOfMemberNames = fetchedMembers.map(member => member.user.username).filter(name => name !== client.user.username).sort()
   thread.send(`I would appreciate standup posts from:\n\n${listOfMemberNames.join('\n')}`)
-}, null, true, 'America/New_York');
-fridayStandup.start();
+}, null, true, 'America/New_York')
+fridayStandup.start()
 
 const dailyHuddle = new CronJob('30 16 * * 1-5', async function() {
   const guild = await client.guilds.fetch(GUILD)
@@ -171,8 +192,8 @@ const dailyHuddle = new CronJob('30 16 * * 1-5', async function() {
   if (channel) {
     channel.send(`<@&${KEEP_ROLE}> there's a daily huddle in huddle 0 :)`)
   }
-}, null, true, 'Europe/Rome');
-dailyHuddle.start();
+}, null, true, 'Europe/Rome')
+dailyHuddle.start()
 
 const cleanKeepGithub = new CronJob('30 1 * * 1', async function() {
   const guild = await client.guilds.fetch(GUILD)
@@ -186,7 +207,7 @@ const cleanKeepGithub = new CronJob('30 1 * * 1', async function() {
   }
   channel.send(`Deleted ${totalMessagesDeleted} messages as part of weekly maintenance`)
 })
-cleanKeepGithub.start();
+cleanKeepGithub.start()
 
 const archiveThreads = new CronJob('*/15 * * * *', async function() {
   const guild = await client.guilds.fetch(GUILD)
@@ -218,7 +239,7 @@ const archiveThreads = new CronJob('*/15 * * * *', async function() {
                     .setCustomId('long-running-thread')
                     .setLabel('Long-Running Thread')
                     .setStyle('SECONDARY'),
-                );
+                )
 
               thread.send({
                 content: `<@${thread.ownerId}>, it's been a bit since this thread has seen activity. Ready to archive it?`,
@@ -230,17 +251,17 @@ const archiveThreads = new CronJob('*/15 * * * *', async function() {
       })
     })
 })
-archiveThreads.start();
+archiveThreads.start()
 
 client.on('interactionCreate', async interaction => {
-  if (!interaction.isButton()) return;
+  if (!interaction.isButton()) return
   if (interaction.customId === 'archive-thread') {
     archiveThread(interaction)
   }
   if (interaction.customId === 'long-running-thread') {
     markThreadLongRunning(interaction)
   }
-});
+})
 
 async function archiveThread(interaction) {
   const guild = await client.guilds.fetch(interaction.guildId)
@@ -250,7 +271,6 @@ async function archiveThread(interaction) {
 }
 
 async function markThreadLongRunning(interaction) {
-  console.log(interaction.channelId)
   let longRunningThreadIds = await read('long-running-thread-ids') || {}
   longRunningThreadIds[interaction.channelId] = true
   await write('long-running-thread-ids', longRunningThreadIds)
@@ -258,7 +278,7 @@ async function markThreadLongRunning(interaction) {
 }
 
 let brainLock = false
-const emitter = new EventEmitter();
+const emitter = new EventEmitter()
 async function read(key) {
   if (brainLock) {
     await new Promise(resolve => emitter.once('unlocked', resolve))
@@ -288,4 +308,19 @@ async function write(key, val) {
   emitter.emit('unlocked')
 }
 
-client.login(TOKEN);
+client.on('interactionCreate', async interaction => {
+	if (!interaction.isCommand()) return
+
+	const command = client.commands.get(interaction.commandName)
+
+	if (!command) return
+
+	try {
+		await command.execute(interaction, client)
+	} catch (error) {
+		console.error(error)
+		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true })
+	}
+})
+
+client.login(TOKEN)
