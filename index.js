@@ -174,13 +174,14 @@ const fridayStandup = new CronJob('30 1 * * 5', async function() {
   const mondayThread = threads.threads.find(t => t.name === mondayThreadName)
   const mondayTheadLink = mondayThread ? ` ${threadUrl(mondayThread)}` : ""
   await thread.join()
-  await thread.send(
+  const message = await thread.send(
     `<@&${ROLE}>, Please paste in what you set out to accomplish from Monday${mondayTheadLink}, as well as what you ended up accomplishing with the following syntax\n\n` +
     `- [X] A robot may not injure a human being or, through inaction, allow a human being to come to harm.\n` + 
     `- [ ] A robot must obey the orders given it by human beings except where such orders would conflict with the First Law.\n` +
     `- [X] A robot must protect its own existence as long as such protection does not conflict with the First or Second Law.\n\n` +
     `Use [ ] to denote work that was planned but unfinished, and [X] to denote work that was accomplished.`
   )
+  await message.suppressEmbeds(true)
 
   const members = await thread.members.fetch()
   const fetchedMembers = await Promise.all(members.map(member => guild.members.fetch(member.id)))
