@@ -154,6 +154,10 @@ const mondayStandup = new CronJob('30 1 * * 1', async function() {
 }, null, true, 'America/New_York')
 mondayStandup.start()
 
+function threadUrl(thread) {
+  return `https://discord.com/channels/${thread.guildId}/${thread.id}`
+}
+
 const fridayStandup = new CronJob('30 1 * * 5', async function() {
   const guild = await client.guilds.fetch(GUILD)
   const channels = await guild.channels.fetch()
@@ -168,7 +172,7 @@ const fridayStandup = new CronJob('30 1 * * 5', async function() {
   let mondayDate = moment().subtract(4, 'days')
   const mondayThreadName = `${mondayDate.format('YYYY-MM-DD')} Standup`
   const mondayThread = threads.threads.find(t => t.name === mondayThreadName)
-  const mondayTheadLink = mondayThread ? ` ${mondayThread}` : ""
+  const mondayTheadLink = mondayThread ? ` ${threadUrl(mondayThread)}` : ""
   await thread.join()
   await thread.send(
     `<@&${ROLE}>, Please paste in what you set out to accomplish from Monday${mondayTheadLink}, as well as what you ended up accomplishing with the following syntax\n\n` +
