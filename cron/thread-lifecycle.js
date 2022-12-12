@@ -17,16 +17,14 @@ function weekdaysBefore(theMoment, days) {
 }
 
 module.exports = {
-  // schedule: '*/15 * * * *',
-  schedule: '* * * * *',
+  schedule: '*/15 * * * *',
   timezone: 'America/New_York',
   execute(client) {
     return async () => {
       const guild = await client.guilds.fetch(GUILD)
       const channels = await guild.channels.fetch()
       const longRunningThreadIds = (await read('long-running-thread-ids')) || {}
-      // const archiveThreshold = weekdaysBefore(moment(), 4)
-      const archiveThreshold = moment()
+      const archiveThreshold = weekdaysBefore(moment(), 4)
       channels
         .filter(channel => channel.isText() && channel.name != "keep-github" && channel.viewable)
         .forEach(async channel => {
