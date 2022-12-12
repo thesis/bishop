@@ -39,17 +39,6 @@ function weekdaysBefore(theMoment, days) {
   return newMoment
 }
 
-client.on('threadCreate', async thread => {
-  if (thread.ownerId !== client.user.id) {
-    await thread.join()
-    const placeholder = await thread.send("<placeholder>")
-    await placeholder.edit("<@&" + ROLE + ">")
-    if (thread.autoArchiveDuration < sevenDaysInMinutes) {
-      thread.setAutoArchiveDuration(sevenDaysInMinutes)
-    }
-  }
-})
-
 client.on('messageCreate', async message => {
   if (!!message.reference && !!message.reference.messageId) {
     const channel = await client.channels.fetch(message.reference.channelId)
