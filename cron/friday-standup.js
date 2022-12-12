@@ -5,9 +5,7 @@ const { sevenDaysInMinutes } = require('../constants')
 
 const moment = require('moment')
 
-function threadUrl(thread) {
-  return `https://discord.com/channels/${thread.guildId}/${thread.id}`
-}
+const { threadUrl } = require('./utils')
 
 module.exports = {
   schedule: '30 1 * * 5',
