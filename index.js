@@ -28,6 +28,15 @@ for (const file of scriptFiles) {
   client.on(script.trigger, script.execute(client))
 }
 
+const cronPath = path.join(__dirname, 'cron')
+const cronFiles = fs.readdirSync(cronPath).filter(file => file.endsWith('.js'))
+for (const file of cronFiles) {
+  const filePath = path.join(cronPath, file)
+  const cron = require(filePath)
+  const job = new CronJob(cron.schedule, cron.execute(client), null, true, cron.timezone)
+  job.start()
+}
+
 function weekdaysBefore(theMoment, days) {
   let newMoment = theMoment.clone()
   while(days > 0) {
@@ -63,42 +72,6 @@ const mondayStandup = new CronJob('30 1 * * 1', async function() {
   thread.send(`I would appreciate standup posts from:\n\n${listOfMemberNames.join('\n')}`)
 }, null, true, 'America/New_York')
 mondayStandup.start()
-
-function threadUrl(thread) {
-  return `https://discord.com/channels/${thread.guildId}/${thread.id}`
-}
-
-const fridayStandup = new CronJob('30 1 * * 5', async function() {
-  const guild = await client.guilds.fetch(GUILD)
-  const channels = await guild.channels.fetch()
-  const channel = channels.find(channel => channel.name === "standups")
-  const threadName = `${moment().format('YYYY-MM-DD')} EOW Standup`
-  const thread = await channel.threads.create({
-    name: threadName,
-    autoArchiveDuration: sevenDaysInMinutes,
-    reason: "Friday Standup"
-  })
-  const threads = await channel.threads.fetch()
-  let mondayDate = moment().subtract(4, 'days')
-  const mondayThreadName = `${mondayDate.format('YYYY-MM-DD')} Standup`
-  const mondayThread = threads.threads.find(t => t.name === mondayThreadName)
-  const mondayTheadLink = mondayThread ? ` ${threadUrl(mondayThread)}` : ""
-  await thread.join()
-  const message = await thread.send(
-    `<@&${ROLE}>, Please paste in what you set out to accomplish from Monday${mondayTheadLink}, as well as what you ended up accomplishing with the following syntax\n\n` +
-    `- [X] A robot may not injure a human being or, through inaction, allow a human being to come to harm.\n` + 
-    `- [ ] A robot must obey the orders given it by human beings except where such orders would conflict with the First Law.\n` +
-    `- [X] A robot must protect its own existence as long as such protection does not conflict with the First or Second Law.\n\n` +
-    `Use [ ] to denote work that was planned but unfinished, and [X] to denote work that was accomplished.`
-  )
-  await message.suppressEmbeds(true)
-
-  const members = await thread.members.fetch()
-  const fetchedMembers = await Promise.all(members.map(member => guild.members.fetch(member.id)))
-  const listOfMemberNames = fetchedMembers.map(member => member.user.username).filter(name => name !== client.user.username).sort()
-  thread.send(`I would appreciate standup posts from:\n\n${listOfMemberNames.join('\n')}`)
-}, null, true, 'America/New_York')
-fridayStandup.start()
 
 const dailyHuddle = new CronJob('30 16 * * 1-5', async function() {
   const guild = await client.guilds.fetch(GUILD)
