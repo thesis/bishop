@@ -6,16 +6,12 @@ const KEEP_ROLE = process.env.KEEP_ROLE
 
 const sevenDaysInMinutes = 7 * 24 * 60
 
-const { Client, Collection, Intents, MessageEmbed, MessageActionRow, MessageButton } = require('discord.js')
+const { Client, Intents, MessageEmbed, MessageActionRow, MessageButton } = require('discord.js')
 const CronJob = require('cron').CronJob
 const moment = require('moment')
 const fs = require('fs')
 const path = require('path')
 const EventEmitter = require('events')
-const { REST } = require('@discordjs/rest')
-const { Routes } = require('discord-api-types/v9')
-
-const rest = new REST({ version: '9' }).setToken(TOKEN)
 
 const client = new Client({ intents: [
   Intents.FLAGS.GUILDS,
@@ -23,6 +19,14 @@ const client = new Client({ intents: [
   Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
   Intents.FLAGS.GUILD_MEMBERS,
 ] })
+
+const scriptsPath = path.join(__dirname, 'scripts')
+const scriptFiles = fs.readdirSync(scriptsPath).filter(file => file.endsWith('.js'))
+for (const file of scriptFiles) {
+  const filePath = path.join(scriptsPath, file)
+  const script = require(filePath)
+  client.on(script.trigger, script.execute(client))
+}
 
 function weekdaysBefore(theMoment, days) {
   let newMoment = theMoment.clone()
@@ -34,26 +38,6 @@ function weekdaysBefore(theMoment, days) {
   }
   return newMoment
 }
-
-client.on('ready', async () => {
-  console.log(`Logged in as ${client.user.tag}!`)
-
-  client.commands = new Collection()
-  const commandsPath = path.join(__dirname, 'commands')
-  const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'))
-  let commands = []
-
-  for (const file of commandFiles) {
-    const filePath = path.join(commandsPath, file)
-    const command = require(filePath)
-    client.commands.set(command.data.name, command)
-    commands.push(command.data.toJSON())
-  }
-
-  rest.put(Routes.applicationGuildCommands(client.user.id, GUILD), { body: commands })
-    .then(() => console.log('Successfully registered application commands.'))
-    .catch(console.error)
-})
 
 client.on('threadCreate', async thread => {
   if (thread.ownerId !== client.user.id) {
