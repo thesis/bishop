@@ -38,61 +38,6 @@ for (const file of cronFiles) {
 }
 
 client.on('interactionCreate', async interaction => {
-  if (!interaction.isButton()) return
-  if (interaction.customId === 'archive-thread') {
-    archiveThread(interaction)
-  }
-  if (interaction.customId === 'long-running-thread') {
-    markThreadLongRunning(interaction)
-  }
-})
-
-async function archiveThread(interaction) {
-  const guild = await client.guilds.fetch(interaction.guildId)
-  const channel = await guild.channels.fetch(interaction.channelId)
-  await interaction.reply("Done!")
-  channel.setArchived(true)
-}
-
-async function markThreadLongRunning(interaction) {
-  let longRunningThreadIds = await read('long-running-thread-ids') || {}
-  longRunningThreadIds[interaction.channelId] = true
-  await write('long-running-thread-ids', longRunningThreadIds)
-  await interaction.reply("Alright. I'll keep the thread alive.")
-}
-
-let brainLock = false
-const emitter = new EventEmitter()
-async function read(key) {
-  if (brainLock) {
-    await new Promise(resolve => emitter.once('unlocked', resolve))
-  }
-  brainLock = true
-
-  const data = await fs.promises.readFile("brain.json")
-  const value = JSON.parse(data.toString())[key]
-
-  brainLock = false
-  emitter.emit('unlocked')
-  return value
-}
-
-async function write(key, val) {
-  if (brainLock) {
-    await new Promise(resolve => emitter.once('unlocked', resolve))
-  }
-  brainLock = true
-
-  const data = await fs.promises.readFile("brain.json")
-  let brain = JSON.parse(data.toString())
-  brain[key] = val
-  await fs.promises.writeFile("brain.json", JSON.stringify(brain, null, 2))
-
-  brainLock = false
-  emitter.emit('unlocked')
-}
-
-client.on('interactionCreate', async interaction => {
 	if (!interaction.isCommand()) return
 
 	const command = client.commands.get(interaction.commandName)
