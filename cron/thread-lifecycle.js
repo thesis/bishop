@@ -16,53 +16,60 @@ function weekdaysBefore(theMoment, days) {
   return newMoment
 }
 
+function archiveThreadPrompt(client, thread) {
+  if (thread.ownerId === client.user.id) {
+    thread.setArchived(true)
+    return 
+  }
+
+  const row = new MessageActionRow()
+    .addComponents(
+      new MessageButton()
+      .setCustomId('archive-thread')
+      .setLabel('Archive The Thread')
+      .setStyle('DANGER'),
+    )
+    .addComponents(
+      new MessageButton()
+      .setCustomId('long-running-thread')
+      .setLabel('Long-Running Thread')
+      .setStyle('SECONDARY'),
+    )
+
+  thread.send({
+    content: `<@${thread.ownerId}>, it's been a bit since this thread has seen activity. Ready to archive it?`,
+    components: [row]
+  })
+}
+
 module.exports = {
-  schedule: '*/15 * * * *',
+  schedule: '* * * * *',
+  // schedule: '*/15 * * * *', FIXME
   timezone: 'America/New_York',
   execute(client) {
     return async () => {
       const guild = await client.guilds.fetch(GUILD)
       const channels = await guild.channels.fetch()
       const longRunningThreadIds = (await read('long-running-thread-ids')) || {}
-      const archiveThreshold = weekdaysBefore(moment(), 4)
+      const archiveThreshold = moment()
+      // const archiveThreshold = weekdaysBefore(moment(), 4) FIXME
       channels
         .filter(channel => channel.isText() && channel.name != "keep-github" && channel.viewable)
         .forEach(async channel => {
           const threads = await channel.threads.fetch()
-          threads.threads.forEach(async thread => {
+          threads.threads.filter(async thread => {
             const messages = await thread.messages.fetch({limit: 1})
             const lastActivity = Math.max(
               messages.first() && messages.first().createdTimestamp || 0,
               thread.archiveTimestamp
             )
-            if (moment(lastActivity).isBefore(archiveThreshold)) {
-              if (longRunningThreadIds[thread.id]) {
-                await thread.setArchived(true)
-                thread.setArchived(false)
-              } else {
-                if (thread.ownerId === client.user.id) {
-                  thread.setArchived(true)
-                } else {
-                  const row = new MessageActionRow()
-                    .addComponents(
-                      new MessageButton()
-                      .setCustomId('archive-thread')
-                      .setLabel('Archive The Thread')
-                      .setStyle('DANGER'),
-                    )
-                    .addComponents(
-                      new MessageButton()
-                      .setCustomId('long-running-thread')
-                      .setLabel('Long-Running Thread')
-                      .setStyle('SECONDARY'),
-                    )
-
-                  thread.send({
-                    content: `<@${thread.ownerId}>, it's been a bit since this thread has seen activity. Ready to archive it?`,
-                    components: [row]
-                  })
-                }
-              }
+            return moment(lastActivity).isBefore(archiveThreshold)
+          }).forEach(async thread => {
+            if (longRunningThreadIds[thread.id]) {
+              await thread.setArchived(true)
+              thread.setArchived(false)
+            } else {
+              archiveThreadPrompt(client, thread)
             }
           })
         })
