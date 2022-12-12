@@ -3,7 +3,7 @@ const { missingStandups } = require('../cron/utils')
 
 module.exports = {
   trigger: 'messageCreate',
-	execute(client) {
+  execute(client) {
     return async (message) => {
       if (message.author.id !== client.user.id) {
         const channel = await client.channels.fetch(message.channelId)
@@ -17,5 +17,5 @@ module.exports = {
         }
       }
     }
-	},
+  },
 }

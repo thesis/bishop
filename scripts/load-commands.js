@@ -10,7 +10,7 @@ const rest = new REST({ version: '9' }).setToken(TOKEN)
 
 module.exports = {
   trigger: 'ready',
-	execute(client) {
+  execute(client) {
     return async () => {
       client.commands = new Collection()
       const commandsPath = path.join(__dirname, '../commands')
@@ -28,5 +28,5 @@ module.exports = {
         .then(() => console.log('Successfully registered application commands.'))
         .catch(console.error)
     }
-	},
+  },
 }

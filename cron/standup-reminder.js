@@ -9,7 +9,7 @@ const { sevenDaysInMinutes } = require('../constants')
 module.exports = {
   schedule: '0 9 * * 2', // At 09:00 on Tuesday
   timezone: 'America/New_York',
-	execute(client) {
+  execute(client) {
     return async () => {
       const guild = await client.guilds.fetch(GUILD)
       const channels = await guild.channels.fetch()

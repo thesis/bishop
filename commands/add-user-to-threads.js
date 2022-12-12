@@ -7,14 +7,16 @@ const GUILD = process.env.GUILD
 const KEEP_ROLE = process.env.KEEP_ROLE
 
 module.exports = {
-	data: new SlashCommandBuilder()
-		.setName('add-user-to-threads')
-		.setDescription('Adds user to all active threads')
-    .addUserOption(option => 
-      option.setName('user')
-        .setDescription('the user')
-        .setRequired(true)),
-	async execute(interaction, client) {
+  data: new SlashCommandBuilder()
+  .setName('add-user-to-threads')
+  .setDescription('Adds user to all active threads')
+  .addUserOption(option => 
+    option.setName('user')
+    .setDescription('the user')
+    .setRequired(true)
+  ),
+
+  async execute(interaction, client) {
     const user = interaction.options.getUser('user')
     const guild = await client.guilds.fetch(GUILD)
     const channels = await guild.channels.fetch()
@@ -27,7 +29,7 @@ module.exports = {
           await placeholder.edit("<@" + user.id + ">")
         })
       })
-    
-		await interaction.reply('Done!')
-	},
+
+    await interaction.reply('Done!')
+  },
 }

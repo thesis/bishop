@@ -1,6 +1,6 @@
 module.exports = {
   trigger: 'interactionCreate',
-	execute(client) {
+  execute(client) {
     return async (interaction) => {
       if (!interaction.isCommand()) return
 
@@ -15,5 +15,5 @@ module.exports = {
         await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true })
       }
     }
-	},
+  },
 }

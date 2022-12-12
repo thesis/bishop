@@ -4,7 +4,7 @@ const { sevenDaysInMinutes } = require("../constants")
 
 module.exports = {
   trigger: 'threadCreate',
-	execute(client) {
+  execute(client) {
     return async (thread) => {
       if (thread.ownerId !== client.user.id) {
         await thread.join()
@@ -15,5 +15,5 @@ module.exports = {
         }
       }
     }
-	},
+  },
 }

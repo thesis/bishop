@@ -8,7 +8,7 @@ const moment = require('moment')
 module.exports = {
   schedule: '30 1 * * 1',
   timezone: 'America/New_York',
-	execute(client) {
+  execute(client) {
     return async () => {
       const guild = await client.guilds.fetch(GUILD)
       const channels = await guild.channels.fetch()

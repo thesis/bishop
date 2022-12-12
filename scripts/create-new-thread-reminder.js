@@ -2,7 +2,7 @@ const EMOJI = process.env.EMOJI
 
 module.exports = {
   trigger: 'messageCreate',
-	execute(client) {
+  execute(client) {
     return async (message) => {
       if (!!message.reference && !!message.reference.messageId) {
         const channel = await client.channels.fetch(message.reference.channelId)
@@ -18,5 +18,5 @@ module.exports = {
         }
       }
     }
-	},
+  },
 }

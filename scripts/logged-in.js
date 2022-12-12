@@ -1,8 +1,8 @@
 module.exports = {
   trigger: 'ready',
-	execute(client) {
+  execute(client) {
     return async () => {
       console.log(`Logged in as ${client.user.tag}!`)
     }
-	},
+  },
 }
