@@ -39,26 +39,6 @@ function weekdaysBefore(theMoment, days) {
   return newMoment
 }
 
-async function compactGithubEmbeds(message) {
-  if (!message.author.bot) {
-    const receivedEmbeds = message.embeds
-    if (!!receivedEmbeds && receivedEmbeds.find(embed => embed.url && embed.url.includes('github'))) {
-      await message.suppressEmbeds(true)
-      const description = receivedEmbeds
-        .map((embed, i) => `(${i+1}) [${embed.title}](${embed.url})`)
-        .join('\n')
-      const embed = new MessageEmbed()
-        .setColor('#0099ff')
-        .setDescription(description)
-
-      message.channel.send({embeds: [embed]})
-    }
-  }
-}
-
-client.on('messageCreate', compactGithubEmbeds)
-client.on('messageUpdate', async (_, message) => compactGithubEmbeds(message))
-
 const mondayStandup = new CronJob('30 1 * * 1', async function() {
   const guild = await client.guilds.fetch(GUILD)
   const channels = await guild.channels.fetch()
