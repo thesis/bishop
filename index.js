@@ -1,17 +1,9 @@
 const TOKEN = process.env.TOKEN
-const ROLE = process.env.ROLE
-const EMOJI = process.env.EMOJI
-const GUILD = process.env.GUILD
-const KEEP_ROLE = process.env.KEEP_ROLE
 
-const sevenDaysInMinutes = 7 * 24 * 60
-
-const { Client, Intents, MessageEmbed, MessageActionRow, MessageButton } = require('discord.js')
+const { Client, Intents } = require('discord.js')
 const CronJob = require('cron').CronJob
-const moment = require('moment')
 const fs = require('fs')
 const path = require('path')
-const EventEmitter = require('events')
 
 const client = new Client({ intents: [
   Intents.FLAGS.GUILDS,
