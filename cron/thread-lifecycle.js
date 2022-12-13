@@ -55,14 +55,16 @@ module.exports = {
         .filter(channel => channel.isText() && channel.name != "keep-github" && channel.viewable)
         .forEach(async channel => {
           const threads = await channel.threads.fetch()
-          threads.threads.filter(async thread => {
+          threads.threads.forEach(async thread => {
             const messages = await thread.messages.fetch({limit: 1})
             const lastActivity = Math.max(
               messages.first() && messages.first().createdTimestamp || 0,
               thread.archiveTimestamp
             )
-            return moment(lastActivity).isBefore(archiveThreshold)
-          }).forEach(async thread => {
+            if (moment(lastActivity).isAfter(archiveThreshold)) {
+              return
+            }
+
             if (longRunningThreadIds[thread.id]) {
               await thread.setArchived(true)
               thread.setArchived(false)
