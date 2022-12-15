@@ -1,4 +1,5 @@
 const KEEP_ROLE = process.env.KEEP_ROLE
+const GUILD = process.env.GUILD
 
 module.exports = {
   schedule: '30 16 * * 1-5',
