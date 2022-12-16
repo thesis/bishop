@@ -17,7 +17,7 @@ module.exports = {
       const messages = await channel.messages.fetch()
       const reminderMessage = messages.find(message => message.author.id === client.user.id && message.content.startsWith("I would appreciate"))
       if (reminderMessage) {
-        const membersToRemind = missingStandups(client, channel).map(user => user.username)
+        const membersToRemind = (await missingStandups(client, channel)).map(user => user.username)
         reminderMessage.edit(`I would appreciate standup posts from:\n\n${membersToRemind.join('\n')}`)
       }
     }
