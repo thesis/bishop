@@ -24,6 +24,16 @@ Add cron jobs to the `/cron/` folder. These should the following keys:
 1. Create a server, invite the bot to it, and give it a good permissions integer: `1089952280129`
 1. Clone this repo, and set the following environment variables below. I
    recommend [direnv](https://direnv.net/) to manage this.
+1. Navigate to this directory.
+1. `$ npm ci`
+1. `$ node index.js`
+1. You should be greeted with something that looks like:
+
+```
+Logged in as TestBishop#6775!
+Successfully registered application commands.
+```
+
 
 ### Environment Configuration
 
