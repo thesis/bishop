@@ -4,7 +4,6 @@ const TOKEN = process.env.TOKEN
 const ROLE = process.env.ROLE
 const EMOJI = process.env.EMOJI
 const GUILD = process.env.GUILD
-const KEEP_ROLE = process.env.KEEP_ROLE
 
 module.exports = {
   data: new SlashCommandBuilder()
