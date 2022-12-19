@@ -20,8 +20,8 @@ Add cron jobs to the `/cron/` folder. These should the following keys:
 
 ### Local Development
 1. Create your own bot using the [the discord developer portal](https://discord.com/developers/applications).
-1. Make sure your bot has the proper server authorizations <insert picture here>
-1. Create a server, invite the bot to it, and give it a good permissions integer: `1089952280129`
+1. Make sure your bot has the proper server authorizations <img width="1351" alt="image" src="https://user-images.githubusercontent.com/1045160/208538427-77f0dfdd-3629-49f3-9366-41b934c6cb05.png">
+1. Create a server, invite the bot to it, and give it a good permissions integer: `1089952280129` 
 1. Clone this repo, and set the following environment variables below. I
    recommend [direnv](https://direnv.net/) to manage this.
 1. Navigate to this directory.
