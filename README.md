@@ -10,7 +10,7 @@ object with two keys:
   handler function. For a barebones example of this, check out
   [logged-in.js](https://github.com/thesis/bishop/blob/4757eab67b6751a361a8f09499cc97daf587e41f/scripts/logged-in.js).
 
-Add cron jobs to the `/cron/` folder. These should the following keys:
+Add cron jobs to the `/cron/` folder. These should export the following keys:
 + `schedule`, which is a [cron-formatted string](https://crontab.guru/).
 + `timezone`, which is the [english-named
   timezone](https://code2care.org/pages/java-timezone-list-utc-gmt-offset) like
