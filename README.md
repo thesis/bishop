@@ -16,7 +16,8 @@ Add cron jobs to the `/cron/` folder. These should export the following keys:
   timezone](https://code2care.org/pages/java-timezone-list-utc-gmt-offset) like
   `America/New_York`.
 + `execute`, which is a function that takes in a `client` and returns a
-  function to be run on a cron schedule.
+  function to be run on a cron schedule. For a simple example of this, check out
+  [clean-github-channel.js](https://github.com/thesis/bishop/blob/ec9038b6175fc067a3da57cb2e1d7af1be7ada89/cron/clean-github-channel.js).
 
 ### Local Development
 1. Create your own bot using the [the discord developer portal](https://discord.com/developers/applications).
