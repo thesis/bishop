@@ -16,7 +16,7 @@ module.exports = {
     const messages = await thread.messages.fetch()
     const messageAuthorMap = messages.reduce((authors, message) => Object.assign(authors, {[message.author.id]: true}), {})
     return Object.keys(threadMemberMap)
-      .filter(memberId => !messageAuthorMap[memberId])
+      .filter(memberId => !messageAuthorMap[memberId] && memberId !== client.user.id)
       .map(memberId => threadMemberMap[memberId])
       .sort()
   }
