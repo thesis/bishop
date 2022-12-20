@@ -15,15 +15,14 @@ module.exports = {
       const channels = await guild.channels.fetch()
       const standupChannel = channels.find(channel => channel.name === "standups")
       const threads = await standupChannel.threads.fetch()
-      const now = moment()
 
-      let mondayDate = now.subtract(1, 'days')
+      let mondayDate = moment().subtract(1, 'days')
       const mondayThreadName = `${mondayDate.format('YYYY-MM-DD')} Standup`
       const mondayThread = threads.threads.find(t => t.name === mondayThreadName)
       const mondayThreadLink = mondayThread ? threadUrl(mondayThread) : ""
       const missingFromMonday = await missingStandups(client, mondayThread)
 
-      let fridayDate = now.subtract(4, 'days')
+      let fridayDate = moment().subtract(4, 'days')
       const fridayThreadName = `${fridayDate.format('YYYY-MM-DD')} EOW Standup`
       const fridayThread = threads.threads.find(t => t.name === fridayThreadName)
       const fridayThreadLink = fridayThread ? threadUrl(fridayThread) : ""
