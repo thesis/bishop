@@ -7,7 +7,7 @@ module.exports = {
     return async () => {
       const guild = await client.guilds.fetch(GUILD)
       const channels = await guild.channels.fetch()
-      const channel = channels.find(channel => channel.name === "keep-github")
+      const channel = channels.find(channel => channel.name === "github")
       let messagesDeleted = -1
       let totalMessagesDeleted = 0
       while (messagesDeleted != 0) {
