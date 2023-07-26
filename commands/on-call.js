@@ -1,10 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { read, write } = require('../storage')
-
-const TOKEN = process.env.TOKEN
-const ROLE = process.env.ROLE
-const EMOJI = process.env.EMOJI
-const GUILD = process.env.GUILD
+const { write } = require('../storage')
 
 module.exports = {
   data: new SlashCommandBuilder()
